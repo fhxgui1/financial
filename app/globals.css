@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #000000;
+  --color-foreground: #ffffff;
+  
+  --color-card: rgba(24, 24, 27, 0.7); /* zinc-900 with opacity for glassmorphism */
+  --color-card-border: rgba(63, 63, 70, 0.4); /* zinc-700 */
+
+  --color-primary: #f59e0b; /* amber-500 */
+  --color-primary-hover: #fbbf24; /* amber-400 */
+  
+  --animate-fade-in: fadeIn 0.5s ease-out forwards;
+  --animate-slide-up: slideUp 0.4s ease-out forwards;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    @apply antialiased selection:bg-amber-500/30;
+    font-family: 'Inter', 'Roboto', sans-serif;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Glassmorphism utilities */
+@layer utilities {
+  .glass {
+    @apply bg-zinc-900/60 backdrop-blur-xl border border-zinc-800/60 shadow-xl;
+  }
+  .glass-panel {
+    @apply bg-zinc-950/40 backdrop-blur-md border border-white/5;
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-amber-600;
+  }
+}
