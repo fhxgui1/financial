@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FinancialProvider, useFinancial } from './lib/store';
 import { DesktopDashboard } from './components/desktop-dashboard';
 import { QuickAdd } from './components/quick-add';
@@ -88,6 +88,7 @@ function BudgetOverview() {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
               )}
             </div>
+            
           );
         })}
       </div>
@@ -98,6 +99,13 @@ function BudgetOverview() {
 function FinancialApp() {
   const { summary } = useFinancial();
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+
+  useEffect(() => {
+    // Automatically open Quick Add modal on mobile devices on first load
+    if (window.innerWidth < 1024) { // Treating anything below 'lg' as requiring the mobile floating button experience
+      setIsQuickAddOpen(true);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-900/30 via-black to-black text-white p-4 md:p-8 font-sans selection:bg-amber-500/30">
