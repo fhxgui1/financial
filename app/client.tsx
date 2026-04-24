@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { FinancialProvider, useFinancial } from './lib/store';
 import { DesktopDashboard } from './components/desktop-dashboard';
 import { QuickAdd } from './components/quick-add';
+import { LogoutButton } from './components/logout-button';
 import { formatCurrency } from './lib/utils';
 import { Plus, ArrowDownRight, ArrowUpRight, Wallet, History, Settings2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -116,13 +117,15 @@ function FinancialApp() {
           
           <header className="flex flex-col gap-4">
             {/* Topbar Nav */}
-            <div className="flex items-center justify-end gap-4 text-sm font-medium">
+            <div className="flex items-center justify-end gap-2 sm:gap-4 text-sm font-medium">
               <Link href="/budgets" className="text-zinc-400 hover:text-amber-500 flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-zinc-900 transition-all">
-                <Settings2 size={16} /> Tetos de Gastos
+                <Settings2 size={16} /> <span className="hidden sm:inline">Tetos de Gastos</span>
               </Link>
               <Link href="/history" className="text-zinc-400 hover:text-amber-500 flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-zinc-900 transition-all">
-                <History size={16} /> Histórico
+                <History size={16} /> <span className="hidden sm:inline">Histórico</span>
               </Link>
+              <div className="w-px h-4 bg-zinc-800 hidden sm:block" />
+              <LogoutButton />
             </div>
 
             <div className="flex items-center justify-between">

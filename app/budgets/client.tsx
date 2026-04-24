@@ -211,3 +211,4 @@ function BudgetRow({ category, current, onSave, saving }: { category: Category, 
     </div>
   );
 }
+

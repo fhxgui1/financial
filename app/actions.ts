@@ -3,15 +3,20 @@
 import { neon } from '@neondatabase/serverless';
 import { revalidatePath } from 'next/cache';
 import { TransactionType } from './lib/types';
+import { getSessionUserId } from './lib/auth';
 
 // The ! assumes DATABASE_URL is present. If it's not, the server will error cleanly.
 const sql = neon(process.env.DATABASE_URL!);
 
 export async function getCategoriesAction() {
   try {
+    const sessionUserId = await getSessionUserId();
+    if (!sessionUserId) return [];
+    
     const categories = await sql`
       SELECT id, name, type, color, icon
       FROM financial_categories
+      WHERE user_id = ${sessionUserId} OR user_id IS NULL
       ORDER BY name ASC
     `;
     return categories;
@@ -23,10 +28,14 @@ export async function getCategoriesAction() {
 
 export async function getTransactionsAction() {
   try {
+    const sessionUserId = await getSessionUserId();
+    if (!sessionUserId) return [];
+    
     const transactions = await sql`
       SELECT 
         id, amount, type, category_id as "categoryId", date, account_id as "accountId", description
       FROM financial_transactions
+      WHERE user_id = ${sessionUserId}
       ORDER BY date DESC
     `;
     return transactions;
@@ -47,15 +56,19 @@ export type CreateTransactionInput = {
 
 export async function createTransactionAction(data: CreateTransactionInput) {
   try {
+    const sessionUserId = await getSessionUserId();
+    if (!sessionUserId) return { success: false, error: 'Não autorizado' };
+    
     await sql`
-      INSERT INTO financial_transactions (amount, type, category_id, date, description, account_id)
+      INSERT INTO financial_transactions (amount, type, category_id, date, description, account_id, user_id)
       VALUES (
         ${data.amount}, 
         ${data.type}, 
         ${data.categoryId}, 
         ${data.date.toISOString()}, 
         ${data.description || null}, 
-        ${data.accountId || null}
+        ${data.accountId || null},
+        ${sessionUserId}
       )
     `;
     
@@ -70,8 +83,11 @@ export async function createTransactionAction(data: CreateTransactionInput) {
 
 export async function deleteTransactionAction(id: string) {
   try {
+    const sessionUserId = await getSessionUserId();
+    if (!sessionUserId) return { success: false, error: 'Não autorizado' };
+
     await sql`
-      DELETE FROM financial_transactions WHERE id = ${id}
+      DELETE FROM financial_transactions WHERE id = ${id} AND user_id = ${sessionUserId}
     `;
     revalidatePath('/financial');
     return { success: true };
@@ -83,9 +99,13 @@ export async function deleteTransactionAction(id: string) {
 
 export async function getBudgetsAction() {
   try {
+    const sessionUserId = await getSessionUserId();
+    if (!sessionUserId) return [];
+
     const budgets = await sql`
       SELECT id, category_id as "categoryId", amount_limit as "amountLimit"
       FROM financial_budgets
+      WHERE user_id = ${sessionUserId}
     `;
     return budgets;
   } catch (error) {
@@ -96,9 +116,12 @@ export async function getBudgetsAction() {
 
 export async function upsertBudgetAction(categoryId: string, amountLimit: number) {
   try {
+    const sessionUserId = await getSessionUserId();
+    if (!sessionUserId) return { success: false, error: 'Não autorizado' };
+
     await sql`
-      INSERT INTO financial_budgets (category_id, amount_limit, updated_at)
-      VALUES (${categoryId}, ${amountLimit}, CURRENT_TIMESTAMP)
+      INSERT INTO financial_budgets (category_id, amount_limit, updated_at, user_id)
+      VALUES (${categoryId}, ${amountLimit}, CURRENT_TIMESTAMP, ${sessionUserId})
       ON CONFLICT (category_id) DO UPDATE 
       SET amount_limit = EXCLUDED.amount_limit, updated_at = CURRENT_TIMESTAMP
     `;
@@ -113,17 +136,20 @@ export async function upsertBudgetAction(categoryId: string, amountLimit: number
 
 export async function createExpenseCategoryAndBudgetAction(name: string, icon: string, color: string, amountLimit: number) {
   try {
+    const sessionUserId = await getSessionUserId();
+    if (!sessionUserId) return { success: false, error: 'Não autorizado' };
+
     const result = await sql`
-      INSERT INTO financial_categories (name, type, color, icon)
-      VALUES (${name}, 'EXPENSE', ${color}, ${icon})
+      INSERT INTO financial_categories (name, type, color, icon, user_id)
+      VALUES (${name}, 'EXPENSE', ${color}, ${icon}, ${sessionUserId})
       RETURNING id
     `;
     const newId = result[0].id;
 
     if (amountLimit > 0) {
       await sql`
-        INSERT INTO financial_budgets (category_id, amount_limit, updated_at)
-        VALUES (${newId}, ${amountLimit}, CURRENT_TIMESTAMP)
+        INSERT INTO financial_budgets (category_id, amount_limit, updated_at, user_id)
+        VALUES (${newId}, ${amountLimit}, CURRENT_TIMESTAMP, ${sessionUserId})
       `;
     }
     
