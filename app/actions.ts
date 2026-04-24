@@ -110,3 +110,27 @@ export async function upsertBudgetAction(categoryId: string, amountLimit: number
     return { success: false, error: 'Falha ao salvar orçamento' };
   }
 }
+
+export async function createExpenseCategoryAndBudgetAction(name: string, icon: string, color: string, amountLimit: number) {
+  try {
+    const result = await sql`
+      INSERT INTO financial_categories (name, type, color, icon)
+      VALUES (${name}, 'EXPENSE', ${color}, ${icon})
+      RETURNING id
+    `;
+    const newId = result[0].id;
+
+    if (amountLimit > 0) {
+      await sql`
+        INSERT INTO financial_budgets (category_id, amount_limit, updated_at)
+        VALUES (${newId}, ${amountLimit}, CURRENT_TIMESTAMP)
+      `;
+    }
+    
+    revalidatePath('/', 'layout');
+    return { success: true, categoryId: newId };
+  } catch (error) {
+    console.error('Error creating new category/budget:', error);
+    return { success: false, error: 'Falha ao criar categoria e teto' };
+  }
+}

@@ -2,15 +2,41 @@
 
 import React, { useState } from 'react';
 import { Category, Budget } from '../lib/types';
-import { upsertBudgetAction } from '../actions';
-import { Check, Loader2 } from 'lucide-react';
+import { upsertBudgetAction, createExpenseCategoryAndBudgetAction } from '../actions';
+import { Check, Loader2, Plus, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { formatCurrency } from '../lib/utils';
 import * as Icons from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function BudgetsClient({ categories, initialBudgets }: { categories: Category[], initialBudgets: Budget[] }) {
+  const router = useRouter();
   const [budgets, setBudgets] = useState<Budget[]>(initialBudgets);
   const [loadingCategory, setLoadingCategory] = useState<string | null>(null);
+
+  const [isAddingNew, setIsAddingNew] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newIcon, setNewIcon] = useState('ShoppingCart');
+  const [newColor, setNewColor] = useState('bg-blue-500');
+  const [newAmount, setNewAmount] = useState('');
+  const [creating, setCreating] = useState(false);
+
+  const handleCreateNew = async () => {
+    if (!newName) return;
+    setCreating(true);
+    const amountVal = parseFloat(newAmount.replace(',', '.')) || 0;
+    try {
+      await createExpenseCategoryAndBudgetAction(newName, newIcon, newColor, amountVal);
+      setNewName('');
+      setNewAmount('');
+      setIsAddingNew(false);
+      router.refresh();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const handleSave = async (categoryId: string, amount: number) => {
     setLoadingCategory(categoryId);
@@ -37,6 +63,86 @@ export function BudgetsClient({ categories, initialBudgets }: { categories: Cate
         const budget = budgets.find(b => b.categoryId === cat.id);
         return <BudgetRow key={cat.id} category={cat} current={budget?.amountLimit || 0} onSave={handleSave} saving={loadingCategory === cat.id} />;
       })}
+
+      {!isAddingNew ? (
+        <button 
+          onClick={() => setIsAddingNew(true)}
+          className="glass-panel p-5 rounded-3xl flex items-center justify-center gap-2 text-zinc-400 hover:text-white hover:border-amber-500/30 hover:bg-amber-500/5 transition-all duration-300 border-dashed border-2 mt-2"
+        >
+          <Plus size={24} />
+          <span className="font-bold text-lg">Criar Nova Categoria / Teto</span>
+        </button>
+      ) : (
+        <div className="glass-panel p-6 sm:p-8 rounded-3xl flex flex-col gap-6 border-amber-500/40 shadow-[0_0_30px_-5px_rgba(245,158,11,0.2)] mt-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-bold text-white flex items-center gap-2"><Plus className="text-amber-500"/> Adicionar Nova Categoria</h3>
+            <button onClick={() => setIsAddingNew(false)} className="text-zinc-500 hover:text-white p-2 bg-zinc-900 rounded-full transition-colors"><X size={20}/></button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Nome da categoria</label>
+              <input 
+                type="text" 
+                value={newName} onChange={e => setNewName(e.target.value)}
+                className="bg-black/60 border border-zinc-800 rounded-2xl p-4 text-white font-medium focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all placeholder:text-zinc-700"
+                placeholder="Ex: Lazer, Viagens..."
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Teto inicial (opcional)</label>
+              <div className="flex bg-black/60 border border-zinc-800 rounded-2xl px-4 py-4 items-center gap-2 focus-within:border-amber-500 focus-within:ring-1 focus-within:ring-amber-500/50 transition-all">
+                <span className="text-zinc-500 font-bold">R$</span>
+                <input 
+                  type="number" step="0.01"
+                  value={newAmount} onChange={e => setNewAmount(e.target.value)}
+                  className="bg-transparent border-none outline-none w-full text-white font-bold"
+                  placeholder="0,00"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Ícone</label>
+              <select 
+                value={newIcon} onChange={e => setNewIcon(e.target.value)}
+                className="bg-black/60 border border-zinc-800 rounded-2xl p-4 text-white font-medium focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all"
+              >
+                {['ShoppingCart', 'Utensils', 'Car', 'Home', 'Coffee', 'Briefcase', 'Gift', 'Zap', 'Heart', 'Smile', 'Plane', 'Smartphone', 'Gamepad2', 'Cpu'].map(ic => (
+                  <option key={ic} value={ic}>{ic}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Cor de Destaque</label>
+              <select 
+                value={newColor} onChange={e => setNewColor(e.target.value)}
+                className="bg-black/60 border border-zinc-800 rounded-2xl p-4 text-white font-medium focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all"
+              >
+                <option value="bg-rose-500">Rosa (Rose)</option>
+                <option value="bg-blue-500">Azul (Blue)</option>
+                <option value="bg-emerald-500">Esmeralda (Emerald)</option>
+                <option value="bg-amber-500">Âmbar (Amber)</option>
+                <option value="bg-purple-500">Roxo (Purple)</option>
+                <option value="bg-orange-500">Laranja (Orange)</option>
+                <option value="bg-cyan-500">Ciano (Cyan)</option>
+                <option value="bg-zinc-500">Cinza (Zinc)</option>
+              </select>
+            </div>
+          </div>
+
+          <button 
+            onClick={handleCreateNew}
+            disabled={!newName || creating}
+            className="mt-2 bg-amber-500 text-black font-bold py-4 rounded-2xl hover:bg-amber-400 transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.98] shadow-[0_0_20px_-5px_rgba(245,158,11,0.4)]"
+          >
+            {creating ? <Loader2 className="animate-spin" size={24} /> : <Check size={24} />}
+            Salvar Nova Categoria
+          </button>
+        </div>
+      )}
     </div>
   );
 }
