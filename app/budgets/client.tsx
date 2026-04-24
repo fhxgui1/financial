@@ -103,33 +103,55 @@ export function BudgetsClient({ categories, initialBudgets }: { categories: Cate
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-1 gap-6 mt-2">
+            <div className="flex flex-col gap-3">
               <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Ícone</label>
-              <select 
-                value={newIcon} onChange={e => setNewIcon(e.target.value)}
-                className="bg-black/60 border border-zinc-800 rounded-2xl p-4 text-white font-medium focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all"
-              >
-                {['ShoppingCart', 'Utensils', 'Car', 'Home', 'Coffee', 'Briefcase', 'Gift', 'Zap', 'Heart', 'Smile', 'Plane', 'Smartphone', 'Gamepad2', 'Cpu'].map(ic => (
-                  <option key={ic} value={ic}>{ic}</option>
-                ))}
-              </select>
+              <div className="flex flex-wrap gap-2">
+                {['ShoppingCart', 'Utensils', 'Car', 'Home', 'Coffee', 'Briefcase', 'Gift', 'Zap', 'Heart', 'Smile', 'Plane', 'Smartphone', 'Gamepad2', 'Cpu'].map(ic => {
+                  const IconComp = (Icons as any)[ic] || Icons.Circle;
+                  return (
+                    <button 
+                      key={ic} type="button" onClick={() => setNewIcon(ic)}
+                      className={cn(
+                        "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
+                        newIcon === ic 
+                          ? "bg-amber-500/20 text-amber-500 border border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)]" 
+                          : "bg-black/60 text-zinc-400 border border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900"
+                      )}
+                    >
+                      <IconComp size={20} />
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <div className="flex flex-col gap-2">
+            
+            <div className="flex flex-col gap-3">
               <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Cor de Destaque</label>
-              <select 
-                value={newColor} onChange={e => setNewColor(e.target.value)}
-                className="bg-black/60 border border-zinc-800 rounded-2xl p-4 text-white font-medium focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all"
-              >
-                <option value="bg-rose-500">Rosa (Rose)</option>
-                <option value="bg-blue-500">Azul (Blue)</option>
-                <option value="bg-emerald-500">Esmeralda (Emerald)</option>
-                <option value="bg-amber-500">Âmbar (Amber)</option>
-                <option value="bg-purple-500">Roxo (Purple)</option>
-                <option value="bg-orange-500">Laranja (Orange)</option>
-                <option value="bg-cyan-500">Ciano (Cyan)</option>
-                <option value="bg-zinc-500">Cinza (Zinc)</option>
-              </select>
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { val: 'bg-rose-500', label: 'Rosa' },
+                  { val: 'bg-blue-500', label: 'Azul' },
+                  { val: 'bg-emerald-500', label: 'Esmeralda' },
+                  { val: 'bg-amber-500', label: 'Âmbar' },
+                  { val: 'bg-purple-500', label: 'Roxo' },
+                  { val: 'bg-orange-500', label: 'Laranja' },
+                  { val: 'bg-cyan-500', label: 'Ciano' },
+                  { val: 'bg-zinc-500', label: 'Cinza' }
+                ].map(c => (
+                  <button 
+                    key={c.val} type="button" onClick={() => setNewColor(c.val)}
+                    title={c.label}
+                    className={cn(
+                      "w-10 h-10 rounded-full transition-all flex items-center justify-center shadow-inner",
+                      c.val,
+                      newColor === c.val ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-950 scale-110" : "opacity-80 hover:opacity-100 hover:scale-105"
+                    )}
+                  >
+                    {newColor === c.val && <Check size={16} className="text-white drop-shadow-md" />}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
