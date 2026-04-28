@@ -32,3 +32,22 @@ export interface FinancialSummary {
   expenseThisMonth: number;
   partialBalance: number; // income - expense for the current month
 }
+
+export interface PlannedPurchaseItem {
+  id: string;
+  plannedPurchaseId: string;
+  categoryId: string | null;
+  name: string;
+  value: number;
+  purchased: boolean;
+  createdAt: Date;
+}
+
+export interface PlannedPurchase {
+  id: string;
+  userId: string;
+  name: string;
+  maxValue: number;
+  createdAt: Date;
+  items?: PlannedPurchaseItem[];
+}

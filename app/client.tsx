@@ -117,7 +117,10 @@ function FinancialApp() {
           
           <header className="flex flex-col gap-4">
             {/* Topbar Nav */}
-            <div className="flex items-center justify-end gap-2 sm:gap-4 text-sm font-medium">
+            <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-4 text-sm font-medium">
+              <Link href="/planned-purchases" className="text-zinc-400 hover:text-amber-500 flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-zinc-900 transition-all">
+                <Icons.ListTodo size={16} /> <span className="hidden sm:inline">Compras Planejadas</span>
+              </Link>
               <Link href="/budgets" className="text-zinc-400 hover:text-amber-500 flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-zinc-900 transition-all">
                 <Settings2 size={16} /> <span className="hidden sm:inline">Tetos de Gastos</span>
               </Link>
